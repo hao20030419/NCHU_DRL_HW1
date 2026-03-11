@@ -1,5 +1,17 @@
 // Backend URL can be configured by setting window.BACKEND_URL in the HTML.
-const BACKEND_URL = (window && window.BACKEND_URL) ? window.BACKEND_URL.replace(/\/$/, '') : '';
+// When exported to GitHub Pages the export script replaces %%BACKEND_URL%% with the real URL.
+// If the placeholder is still present (e.g. '%%BACKEND_URL%%') treat it as empty (same-origin).
+let BACKEND_URL = '';
+try {
+  const raw = (window && window.BACKEND_URL) ? window.BACKEND_URL : '';
+  if (raw && !raw.startsWith('%%')) {
+    BACKEND_URL = raw.replace(/\/$/, '');
+  } else {
+    BACKEND_URL = '';
+  }
+} catch (e) {
+  BACKEND_URL = '';
+}
 
 let n = 5;
 let mode = 'start'; // 'start' | 'goal' | 'obs'
@@ -67,8 +79,8 @@ function createGrid(n) {
         td.dataset.r = r;
         td.dataset.c = c;
         td.className = 'cell';
-        // for value table, show .val; for policy table, show .arrow
-        if (idSuffix === 'value') td.innerHTML = `<div class="val"></div>`;
+        // for value table, show .val and .dist; for policy table, show .arrow
+        if (idSuffix === 'value') td.innerHTML = `<div class="val"></div><div class="dist"></div>`;
         else td.innerHTML = `<div class="arrow"></div>`;
         td.addEventListener('click', cellClick);
         tr.appendChild(td);
@@ -96,7 +108,7 @@ function createGrid(n) {
 function applyMarkers() {
   // clear all classes then apply start/goal/obstacle to all three tables' cells
   const allCells = document.querySelectorAll('td.cell');
-  allCells.forEach(td => td.classList.remove('start', 'goal', 'obstacle'));
+  allCells.forEach(td => td.classList.remove('start', 'goal', 'obstacle', 'unreachable'));
   obstacles.forEach(key => {
     const [r, c] = key.split(',');
     document.querySelectorAll(`td[data-r='${r}'][data-c='${c}']`).forEach(td => td.classList.add('obstacle'));
@@ -201,19 +213,32 @@ async function evaluatePolicy() {
   });
   const data = await res.json();
   const V = data.V;
+  const dist = data.dist || null;
   // draw values in value-grid
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       const td = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
       if (!td) continue;
       const valEl = td.querySelector('.val');
+      const distEl = td.querySelector('.dist');
       const key = `${r},${c}`;
       if (obstacles.has(key)) {
         valEl.textContent = '';
+        if (distEl) distEl.textContent = '';
       } else if (goal && goal[0] == r && goal[1] == c) {
         valEl.textContent = '0.00';
+        if (distEl) distEl.textContent = '0';
       } else {
-        valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
+        // show unreachable if dist says null
+        if (dist && dist[r] && dist[r][c] === null) {
+          td.classList.add('unreachable');
+          valEl.textContent = '';
+          if (distEl) distEl.textContent = 'INF';
+        } else {
+          td.classList.remove('unreachable');
+          valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
+          if (distEl) distEl.textContent = (dist && dist[r]) ? String(dist[r][c]) : '';
+        }
       }
     }
   }
@@ -230,6 +255,7 @@ async function runPolicyIteration() {
   const data = await res.json();
   const V = data.V;
   const srvPolicy = data.policy || {};
+  const dist = data.dist || null;
   // render returned policy and values
   document.querySelectorAll('table.policy-grid td.cell').forEach(td => {
     const r = parseInt(td.dataset.r);
@@ -246,13 +272,24 @@ async function runPolicyIteration() {
       const td = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
       if (!td) continue;
       const valEl = td.querySelector('.val');
+      const distEl = td.querySelector('.dist');
       const key = `${r},${c}`;
       if (obstacles.has(key)) {
         valEl.textContent = '';
+        if (distEl) distEl.textContent = '';
       } else if (goal && goal[0] == r && goal[1] == c) {
         valEl.textContent = '0.00';
+        if (distEl) distEl.textContent = '0';
       } else {
-        valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
+        if (dist && dist[r] && dist[r][c] === null) {
+          td.classList.add('unreachable');
+          valEl.textContent = '';
+          if (distEl) distEl.textContent = 'INF';
+        } else {
+          td.classList.remove('unreachable');
+          valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
+          if (distEl) distEl.textContent = (dist && dist[r]) ? String(dist[r][c]) : '';
+        }
       }
     }
   }
@@ -270,6 +307,7 @@ async function runValueIteration() {
   const data = await res.json();
   const V = data.V;
   const srvPolicy = data.policy || {};
+  const dist = data.dist || null;
   // render returned policy and values
   document.querySelectorAll('table.policy-grid td.cell').forEach(td => {
     const r = parseInt(td.dataset.r);
@@ -286,13 +324,24 @@ async function runValueIteration() {
       const td = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
       if (!td) continue;
       const valEl = td.querySelector('.val');
+      const distEl = td.querySelector('.dist');
       const key = `${r},${c}`;
       if (obstacles.has(key)) {
         valEl.textContent = '';
+        if (distEl) distEl.textContent = '';
       } else if (goal && goal[0] == r && goal[1] == c) {
         valEl.textContent = '0.00';
+        if (distEl) distEl.textContent = '0';
       } else {
-        valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
+        if (dist && dist[r] && dist[r][c] === null) {
+          td.classList.add('unreachable');
+          valEl.textContent = '';
+          if (distEl) distEl.textContent = 'INF';
+        } else {
+          td.classList.remove('unreachable');
+          valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
+          if (distEl) distEl.textContent = (dist && dist[r]) ? String(dist[r][c]) : '';
+        }
       }
     }
   }

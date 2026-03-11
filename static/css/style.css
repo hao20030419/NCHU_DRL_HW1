@@ -17,3 +17,7 @@ body { font-family: Georgia, serif; padding: 24px; }
 .value-grid td .val { line-height: 44px; }
 .policy-grid td .arrow { line-height: 44px; }
 
+.value-grid td .dist { position: absolute; bottom: 2px; left: 2px; font-size: 11px; color: #222; }
+.value-grid td.unreachable { background: #666; color: white; }
+.value-grid td.unreachable .dist { color: #fff; }
+

@@ -19,6 +19,31 @@ def next_state(n, r, c, action, obstacles):
     return nr, nc
 
 
+def compute_distances(n, goal, obstacles):
+    """Compute shortest number of steps from each cell to goal using BFS.
+    Return matrix of distances (int) or None if unreachable or obstacle.
+    """
+    obstacle_set = set(tuple(x) for x in obstacles)
+    dist = [[None for _ in range(n)] for _ in range(n)]
+    if not goal:
+        return dist
+    gr, gc = tuple(goal)
+    from collections import deque
+    q = deque()
+    if (gr, gc) in obstacle_set:
+        return dist
+    q.append((gr, gc))
+    dist[gr][gc] = 0
+    while q:
+        r, c = q.popleft()
+        for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+            nr, nc = r+dr, c+dc
+            if 0 <= nr < n and 0 <= nc < n and (nr, nc) not in obstacle_set and dist[nr][nc] is None:
+                dist[nr][nc] = dist[r][c] + 1
+                q.append((nr, nc))
+    return dist
+
+
 def evaluate_policy(n, start, goal, obstacles, policy, gamma=0.9, tol=1e-4, max_iter=10000):
     # Initialize V for all states (None for obstacles)
     V = [[0.0 for _ in range(n)] for _ in range(n)]
@@ -167,8 +192,8 @@ def evaluate():
     gamma = float(data.get('gamma', 0.9))
 
     V = evaluate_policy(n, start, goal, obstacles, policy, gamma=gamma)
-
-    return jsonify({'V': V})
+    dist = compute_distances(n, goal, obstacles)
+    return jsonify({'V': V, 'dist': dist})
 
 
 @app.route('/policy_iteration', methods=['POST'])
@@ -181,7 +206,8 @@ def policy_iteration_route():
     tol = float(data.get('tol', 1e-4))
 
     V, policy = policy_iteration(n, goal, obstacles, gamma=gamma, tol=tol)
-    return jsonify({'V': V, 'policy': policy})
+    dist = compute_distances(n, goal, obstacles)
+    return jsonify({'V': V, 'policy': policy, 'dist': dist})
 
 
 @app.route('/value_iteration', methods=['POST'])
@@ -194,7 +220,8 @@ def value_iteration_route():
     tol = float(data.get('tol', 1e-4))
 
     V, policy = value_iteration(n, goal, obstacles, gamma=gamma, tol=tol)
-    return jsonify({'V': V, 'policy': policy})
+    dist = compute_distances(n, goal, obstacles)
+    return jsonify({'V': V, 'policy': policy, 'dist': dist})
 
 
 if __name__ == '__main__':
