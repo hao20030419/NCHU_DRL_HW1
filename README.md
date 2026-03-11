@@ -55,6 +55,7 @@ python app.py
 If you want, I can also add:
 - UI fields for `gamma` and `tol` so you can tune them without editing `app.py`.
 - A button to export/import grid + policy as JSON.
+<<<<<<< HEAD
 
 Deploying frontend to GitHub Pages (static) while backend runs elsewhere
 ---------------------------------------------------------------
@@ -92,3 +93,5 @@ Notes and alternatives:
 - If you want, I can: add a GitHub Actions workflow to automatically run `export_to_docs.py` on push and commit the `docs/` changes, or create a CI that deploys the backend image to Cloud Run. Tell me which automation you'd like and I'll add it.
 
 # NCHU_DRL_HW1
+=======
+>>>>>>> 05767b5e1536705035f6658c1ae92b1a4d0862c6
