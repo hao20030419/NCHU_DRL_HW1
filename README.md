@@ -91,7 +91,3 @@ To have a GitHub Pages URL like `https://<username>.github.io/<repo>/` you need 
 Notes and alternatives:
 - If you prefer a single hosted app (no separate backend), deploy the full Flask app to Render or Cloud Run and use that URL directly (no GitHub Pages). The advantage of GitHub Pages is a free custom static URL under `github.io`.
 - If you want, I can: add a GitHub Actions workflow to automatically run `export_to_docs.py` on push and commit the `docs/` changes, or create a CI that deploys the backend image to Cloud Run. Tell me which automation you'd like and I'll add it.
-
-# NCHU_DRL_HW1
-=======
->>>>>>> 05767b5e1536705035f6658c1ae92b1a4d0862c6
