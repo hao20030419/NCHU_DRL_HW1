@@ -1,0 +1,19 @@
+body { font-family: Georgia, serif; padding: 24px; }
+.controls { margin-bottom: 12px; }
+.modes { margin: 12px 0; }
+.mode { margin-right: 8px; }
+.mode.active { background: #ddd; }
+.grid { border-collapse: collapse; }
+.grid td { width: 54px; height: 54px; border: 2px solid #2b6dad; position: relative; text-align: center; vertical-align: middle; padding: 4px; }
+.grid td .arrow { font-size: 20px; }
+.grid td .val { font-size: 12px; }
+.grid td.start { background: #2e8b57; color: white; }
+.grid td.goal { background: #e53935; color: white; }
+.grid td.obstacle { background: #888888; color: white; }
+
+.matrices { display: flex; gap: 24px; margin-top: 18px; align-items: flex-start; }
+.matrix h2 { margin: 0 0 8px 0; font-size: 18px; }
+.matrix { display: flex; flex-direction: column; }
+.value-grid td .val { line-height: 44px; }
+.policy-grid td .arrow { line-height: 44px; }
+

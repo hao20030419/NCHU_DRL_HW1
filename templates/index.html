@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HW1 Gridworld</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <h1>Generate n x n Square</h1>
+    <div class="controls">
+      <label>Enter n (5-9): <input id="nInput" type="number" min="5" max="9" value="5"/></label>
+      <button id="generateBtn">Generate Square</button>
+      <span id="obstacleInfo"></span>
+    </div>
+
+    <div class="modes">
+      <button id="modeStart" class="mode">Set Start</button>
+      <button id="modeGoal" class="mode">Set End</button>
+      <button id="modeObs" class="mode">Toggle Obstacle</button>
+      <button id="evalBtn">Generate Policy & Evaluate</button>
+      <button id="policyIterBtn">Run Policy Iteration</button>
+      <button id="valueIterBtn">Run Value Iteration</button>
+    </div>
+
+    <div id="gridWrap"></div>
+    <div class="matrices">
+      <div class="matrix">
+        <h2>Value Matrix</h2>
+        <div id="valueWrap"></div>
+      </div>
+      <div class="matrix">
+        <h2>Policy Matrix</h2>
+        <div id="policyWrap"></div>
+      </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>
