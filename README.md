@@ -55,5 +55,3 @@ python app.py
 If you want, I can also add:
 - UI fields for `gamma` and `tol` so you can tune them without editing `app.py`.
 - A button to export/import grid + policy as JSON.
-
-# NCHU_DRL_HW1
