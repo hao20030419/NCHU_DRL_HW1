@@ -1,3 +1,6 @@
+// Backend URL can be configured by setting window.BACKEND_URL in the HTML.
+const BACKEND_URL = (window && window.BACKEND_URL) ? window.BACKEND_URL.replace(/\/$/, '') : '';
+
 let n = 5;
 let mode = 'start'; // 'start' | 'goal' | 'obs'
 let start = null;
@@ -191,7 +194,7 @@ async function evaluatePolicy() {
 
   const obsArray = Array.from(obstacles).map(s => s.split(',').map(x => parseInt(x)));
   const payload = { n, start, goal, obstacles: obsArray, policy };
-  const res = await fetch('/evaluate', {
+  const res = await fetch(`${BACKEND_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -219,7 +222,7 @@ async function evaluatePolicy() {
 async function runPolicyIteration() {
   const obsArray = Array.from(obstacles).map(s => s.split(',').map(x => parseInt(x)));
   const payload = { n, goal, obstacles: obsArray };
-  const res = await fetch('/policy_iteration', {
+  const res = await fetch(`${BACKEND_URL}/policy_iteration`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -259,7 +262,7 @@ async function runPolicyIteration() {
 async function runValueIteration() {
   const obsArray = Array.from(obstacles).map(s => s.split(',').map(x => parseInt(x)));
   const payload = { n, goal, obstacles: obsArray };
-  const res = await fetch('/value_iteration', {
+  const res = await fetch(`${BACKEND_URL}/value_iteration`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)

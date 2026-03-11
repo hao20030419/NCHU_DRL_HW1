@@ -35,6 +35,11 @@
       </div>
     </div>
 
+    <script>
+      // When exporting to GitHub Pages we replace %%BACKEND_URL%% with the deployed backend URL.
+      // Default is empty string (same origin). Example replacement: https://my-backend.onrender.com
+      window.BACKEND_URL = '%%BACKEND_URL%%';
+    </script>
     <script src="/static/js/main.js"></script>
   </body>
 </html>

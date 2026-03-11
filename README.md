@@ -56,4 +56,39 @@ If you want, I can also add:
 - UI fields for `gamma` and `tol` so you can tune them without editing `app.py`.
 - A button to export/import grid + policy as JSON.
 
+Deploying frontend to GitHub Pages (static) while backend runs elsewhere
+---------------------------------------------------------------
+To have a GitHub Pages URL like `https://<username>.github.io/<repo>/` you need to host the static frontend on GitHub Pages and host the Flask backend on a separate service (e.g., Render, Cloud Run, Heroku). Steps:
+
+1. Deploy the backend (Flask) to a hosting service. Example with Render:
+	- Add `gunicorn` and `flask-cors` to `requirements.txt` (already included).
+	- In Render create a new Web Service pointing to this repo. Use build command `pip install -r requirements.txt` and start command `gunicorn app:app --bind 0.0.0.0:$PORT`.
+	- After deployment you'll get a backend URL like `https://my-backend.onrender.com`.
+
+2. Prepare static frontend for GitHub Pages:
+	- We provide `scripts/export_to_docs.py` which copies `templates/index.html` and the `static/` folder into `docs/`.
+	- The HTML contains a placeholder `%%BACKEND_URL%%` that the script replaces with your backend URL.
+
+	Example:
+	```bash
+	python -m venv venv
+	venv\Scripts\activate
+	pip install -r requirements.txt
+	python scripts/export_to_docs.py --backend https://my-backend.onrender.com
+	git add docs
+	git commit -m "Prepare docs for GitHub Pages"
+	git push origin main
+	```
+
+3. Enable GitHub Pages:
+	- On GitHub, go to your repository Settings → Pages.
+	- Set the source to `main` branch and `/docs` folder. Save.
+	- The site will be available at `https://<username>.github.io/<repo>/` (may take a minute).
+
+4. CORS: `app.py` enables CORS so the site served from `github.io` can call your backend. Ensure the backend URL used in `export_to_docs.py` is correct.
+
+Notes and alternatives:
+- If you prefer a single hosted app (no separate backend), deploy the full Flask app to Render or Cloud Run and use that URL directly (no GitHub Pages). The advantage of GitHub Pages is a free custom static URL under `github.io`.
+- If you want, I can: add a GitHub Actions workflow to automatically run `export_to_docs.py` on push and commit the `docs/` changes, or create a CI that deploys the backend image to Cloud Run. Tell me which automation you'd like and I'll add it.
+
 # NCHU_DRL_HW1
