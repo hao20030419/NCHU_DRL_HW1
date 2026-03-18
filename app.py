@@ -176,6 +176,46 @@ def value_iteration(n, goal, obstacles, gamma=0.9, tol=1e-4, max_iter=10000):
     return V, policy
 
 
+def compute_optimal_path(n, start, goal, obstacles, policy):
+    path = []
+    if not start or not goal or not policy:
+        return path
+        
+    r, c = start
+    obstacle_set = set(tuple(x) for x in obstacles)
+    
+    # Preventing infinite loops with a visited set or max steps
+    visited = set()
+    steps = 0
+    max_steps = n * n
+    
+    curr = (r, c)
+    path.append(curr)
+    
+    while curr != tuple(goal) and steps < max_steps:
+        if curr in visited:
+            break
+        visited.add(curr)
+        
+        key = f"{curr[0]},{curr[1]}"
+        if key not in policy:
+            break
+            
+        action = policy[key]
+        nr, nc = next_state(n, curr[0], curr[1], action, obstacle_set)
+        
+        # If we hit an obstacle or go out of bounds (shouldn't happen with optimal policy but safe to check)
+        # next_state returns same state if invalid move
+        if (nr, nc) == curr: 
+            break
+            
+        curr = (nr, nc)
+        path.append(curr)
+        steps += 1
+        
+    return path
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -201,13 +241,15 @@ def policy_iteration_route():
     data = request.get_json()
     n = int(data.get('n'))
     goal = data.get('goal')
+    start = data.get('start')
     obstacles = data.get('obstacles', [])
     gamma = float(data.get('gamma', 0.9))
     tol = float(data.get('tol', 1e-4))
 
     V, policy = policy_iteration(n, goal, obstacles, gamma=gamma, tol=tol)
     dist = compute_distances(n, goal, obstacles)
-    return jsonify({'V': V, 'policy': policy, 'dist': dist})
+    path = compute_optimal_path(n, start, goal, obstacles, policy)
+    return jsonify({'V': V, 'policy': policy, 'dist': dist, 'path': path})
 
 
 @app.route('/value_iteration', methods=['POST'])
@@ -215,13 +257,15 @@ def value_iteration_route():
     data = request.get_json()
     n = int(data.get('n'))
     goal = data.get('goal')
+    start = data.get('start')
     obstacles = data.get('obstacles', [])
     gamma = float(data.get('gamma', 0.9))
     tol = float(data.get('tol', 1e-4))
 
     V, policy = value_iteration(n, goal, obstacles, gamma=gamma, tol=tol)
     dist = compute_distances(n, goal, obstacles)
-    return jsonify({'V': V, 'policy': policy, 'dist': dist})
+    path = compute_optimal_path(n, start, goal, obstacles, policy)
+    return jsonify({'V': V, 'policy': policy, 'dist': dist, 'path': path})
 
 
 if __name__ == '__main__':

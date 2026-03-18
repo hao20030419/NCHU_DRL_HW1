@@ -108,7 +108,7 @@ function createGrid(n) {
 function applyMarkers() {
   // clear all classes then apply start/goal/obstacle to all three tables' cells
   const allCells = document.querySelectorAll('td.cell');
-  allCells.forEach(td => td.classList.remove('start', 'goal', 'obstacle', 'unreachable'));
+  allCells.forEach(td => td.classList.remove('start', 'goal', 'obstacle', 'unreachable', 'path'));
   obstacles.forEach(key => {
     const [r, c] = key.split(',');
     document.querySelectorAll(`td[data-r='${r}'][data-c='${c}']`).forEach(td => td.classList.add('obstacle'));
@@ -242,11 +242,12 @@ async function evaluatePolicy() {
       }
     }
   }
+}
 
 
 async function runPolicyIteration() {
   const obsArray = Array.from(obstacles).map(s => s.split(',').map(x => parseInt(x)));
-  const payload = { n, goal, obstacles: obsArray };
+  const payload = { n, start, goal, obstacles: obsArray };
   const res = await fetch(`${BACKEND_URL}/policy_iteration`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -256,6 +257,8 @@ async function runPolicyIteration() {
   const V = data.V;
   const srvPolicy = data.policy || {};
   const dist = data.dist || null;
+  const path = data.path || [];
+
   // render returned policy and values
   document.querySelectorAll('table.policy-grid td.cell').forEach(td => {
     const r = parseInt(td.dataset.r);
@@ -263,10 +266,19 @@ async function runPolicyIteration() {
     const key = `${r},${c}`;
     const arrowEl = td.querySelector('.arrow');
     arrowEl.textContent = '';
+    
+    // Clear path class
+    td.classList.remove('path');
+    const valTd = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
+    if(valTd) valTd.classList.remove('path');
+    
     if (obstacles.has(key)) return;
     if (goal && goal[0] == r && goal[1] == c) return;
     if (srvPolicy[key]) arrowEl.textContent = arrows[srvPolicy[key]];
   });
+
+  drawPath(path);
+
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       const td = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
@@ -298,7 +310,7 @@ async function runPolicyIteration() {
 
 async function runValueIteration() {
   const obsArray = Array.from(obstacles).map(s => s.split(',').map(x => parseInt(x)));
-  const payload = { n, goal, obstacles: obsArray };
+  const payload = { n, start, goal, obstacles: obsArray };
   const res = await fetch(`${BACKEND_URL}/value_iteration`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -308,6 +320,8 @@ async function runValueIteration() {
   const V = data.V;
   const srvPolicy = data.policy || {};
   const dist = data.dist || null;
+  const path = data.path || [];
+
   // render returned policy and values
   document.querySelectorAll('table.policy-grid td.cell').forEach(td => {
     const r = parseInt(td.dataset.r);
@@ -315,10 +329,19 @@ async function runValueIteration() {
     const key = `${r},${c}`;
     const arrowEl = td.querySelector('.arrow');
     arrowEl.textContent = '';
+
+    // Clear path class
+    td.classList.remove('path');
+    const valTd = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
+    if(valTd) valTd.classList.remove('path');
+
     if (obstacles.has(key)) return;
     if (goal && goal[0] == r && goal[1] == c) return;
     if (srvPolicy[key]) arrowEl.textContent = arrows[srvPolicy[key]];
   });
+
+  drawPath(path);
+
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       const td = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
@@ -340,11 +363,33 @@ async function runValueIteration() {
         } else {
           td.classList.remove('unreachable');
           valEl.textContent = Number.parseFloat(V[r][c]).toFixed(2);
-          if (distEl) distEl.textContent = (dist && dist[r]) ? String(dist[r][c]) : '';
-        }
       }
     }
   }
 }
 }
 
+function drawPath(path) {
+  if (!path || !path.length) return;
+  // path is array of [r, c]
+  path.forEach(([r, c]) => {
+    // don't overwrite start/goal/obstacle styles if they use !important or are more specific
+    // but .path class is just background color.
+    // However, start/goal/obstacle usually should stay visible.
+    // The path should connect start to goal.
+    // Maybe we only apply path to non-start/non-goal cells if we want to preserve their colors?
+    // The image shows the path going through. 
+    // Let's just add the class.
+    
+    // We update both value-grid and policy-grid? Or just policy-grid?
+    // User said "in the grid", usually referring to the main interactive grid or policy grid.
+    // The policy grid shows arrows. The image shows a grid with arrows AND green background path.
+    // So we apply to policy-grid.
+    
+    const pTd = document.querySelector(`table.policy-grid td[data-r='${r}'][data-c='${c}']`);
+    if (pTd) pTd.classList.add('path');
+    
+    const vTd = document.querySelector(`table.value-grid td[data-r='${r}'][data-c='${c}']`);
+    if (vTd) vTd.classList.add('path');
+  });
+}

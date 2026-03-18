@@ -10,6 +10,7 @@ body { font-family: Georgia, serif; padding: 24px; }
 .grid td.start { background: #2e8b57; color: white; }
 .grid td.goal { background: #e53935; color: white; }
 .grid td.obstacle { background: #888888; color: white; }
+.grid td.path { background: #4caf50; }
 
 .matrices { display: flex; gap: 24px; margin-top: 18px; align-items: flex-start; }
 .matrix h2 { margin: 0 0 8px 0; font-size: 18px; }
